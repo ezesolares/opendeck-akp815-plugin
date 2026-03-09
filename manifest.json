@@ -1,0 +1,36 @@
+{
+  "Name": "AJAZZ AKP815",
+  "Author": "Artecom",
+  "Description": "Plugin for the AJAZZ AKP815 stream controller",
+  "UUID": "com.artecom.akp815",
+  "Version": "0.1.0",
+  "SDKVersion": 2,
+  "Icon": "icons/plugin",
+  "CodePath": "opendeck-akp815-plugin",
+  "DeviceNamespace": "aj",
+  "CodePathLin": "opendeck-akp815-plugin",
+  "Category": "AKP815",
+  "CategoryIcon": "icons/category",
+  "OS": [
+    {
+      "Platform": "linux",
+      "MinimumVersion": "5.0"
+    }
+  ],
+  "Software": {
+    "MinimumVersion": "6.0"
+  },
+  "Actions": [
+    {
+      "Name": "AKP815 Action",
+      "UUID": "com.artecom.akp815.action",
+      "Icon": "icons/plugin",
+      "States": [
+        {
+          "Image": "icons/plugin",
+          "Title": "AKP815"
+        }
+      ]
+    }
+  ]
+}
