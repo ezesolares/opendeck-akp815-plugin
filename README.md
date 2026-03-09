@@ -28,16 +28,3 @@ The PID is the second 4-digit hex value (e.g. `1005`). If it differs from `0x100
 chmod +x install.sh
 ./install.sh
 ```
-
-## Actions Included
-
-| Action | UUID | Description |
-|---|---|---|
-| Button Action | com.yourname.akp815.button | Configurable label button |
-| Counter | com.yourname.akp815.counter | Counts key presses |
-
-## Customizing
-
-- Change the `UUID` prefix from `com.yourname` to your own reverse-domain identifier
-- Add more actions by creating new structs implementing the `Action` trait
-- Add a `property-inspector/index.html` to expose settings in the OpenDeck UI
