@@ -6,7 +6,9 @@ A plugin for [OpenDeck](https://github.com/nekename/OpenDeck) targeting the AJAZ
 
 - Rust (https://rustup.rs)
 - OpenDeck installed and running
-- AJAZZ AKP815 device
+- AJAZZ AKP815 keyboard
+
+This wouldnt have been done without the amazing mirajazz library (https://github.com/nekename/mirajazz). All hail to them.
 
 ## Find Your Device PID
 

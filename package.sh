@@ -33,5 +33,5 @@ zip -r "$OUTPUT_FILE" "$PLUGIN_DIR"
 rm -rf "$PLUGIN_DIR"
 
 echo ""
-echo "✅ Plugin packaged: $OUTPUT_FILE"
-echo "   Install it in OpenDeck: Settings → Plugins → Install from file"
+echo "Plugin packaged: $OUTPUT_FILE"
+echo "   Install it in OpenDeck: Settings -> Plugins -> Install from file"

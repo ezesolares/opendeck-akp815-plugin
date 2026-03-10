@@ -17,12 +17,12 @@ use image::DynamicImage;
 // Mapping derived from physical photo evidence + SDK internals.
 // The SDK applies opendeck_to_device_key internally, so we pre-transform
 // our positions to cancel that out and hit the correct physical LCD slot.
-// OD 3x5 landscape → physical 5x3 portrait (90° CW rotation).
-// OD 3x5 landscape → physical 5x3 portrait mapping.
+// OD 3x5 landscape -> physical 5x3 portrait (90-degree CW rotation).
+// OD 3x5 landscape -> physical 5x3 portrait mapping.
 // These tables pre-transform OD positions so that after the SDK applies its
 // own opendeck_to_device_key() remap, the image lands on the correct physical slot.
 //
-// Derivation (90° CW rotation: phys_row = OD_col, phys_col = 2 - OD_row):
+// Derivation (90-degree CW rotation: phys_row = OD_col, phys_col = 2 - OD_row):
 //   target_phys[od] = OD_col * 3 + (2 - OD_row)
 //   OD_TO_SDK[od]   = inverse_of_sdk_remap[target_phys[od]]
 //   SDK_TO_OD[sdk]  = inverse of OD_TO_SDK

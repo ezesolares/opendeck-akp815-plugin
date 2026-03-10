@@ -57,7 +57,7 @@ def package():
         ret = zf.testzip()
         if ret is not None:
             raise Exception(f"Corrupt ZIP at file: {ret}")
-        print("✅ ZIP internal verification passed.")
+        print("ZIP internal verification passed.")
 
     # Show structure
     run_cmd(f"unzip -l {OUTPUT_FILE}")
@@ -67,12 +67,12 @@ def package():
     
     # Final check of file size
     size = os.path.getsize(OUTPUT_FILE)
-    print(f"✅ Plugin packaged successfully: {OUTPUT_FILE} ({size} bytes)")
+    print(f"Plugin packaged successfully: {OUTPUT_FILE} ({size} bytes)")
     print("   Ready for install in OpenDeck.")
 
 if __name__ == "__main__":
     try:
         package()
     except Exception as e:
-        print(f"❌ Error during packaging: {e}")
+        print(f"Error during packaging: {e}")
         exit(1)
