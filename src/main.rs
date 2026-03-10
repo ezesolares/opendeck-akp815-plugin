@@ -26,8 +26,8 @@ use image::DynamicImage;
 //   target_phys[od] = OD_col * 3 + (2 - OD_row)
 //   OD_TO_SDK[od]   = inverse_of_sdk_remap[target_phys[od]]
 //   SDK_TO_OD[sdk]  = inverse of OD_TO_SDK
-const OD_TO_SDK: [u8; 15] = [10, 11, 12, 13, 14, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4];
-const SDK_TO_OD: [u8; 15] = [10, 11, 12, 13, 14, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4];
+const OD_TO_SDK: [u8; 15] = [12, 9, 6, 3, 0, 13, 10, 7, 4, 1, 14, 11, 8, 5, 2];
+const SDK_TO_OD: [u8; 15] = [4, 9, 14, 3, 8, 13, 2, 7, 12, 1, 6, 11, 0, 5, 10];
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -163,7 +163,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let image_format = ImageFormat {
         mode: ImageMode::JPEG,
         size: (100, 100),
-        rotation: ImageRotation::Rot0,
+        rotation: ImageRotation::Rot180,
         mirror: ImageMirroring::None,
     };
 
