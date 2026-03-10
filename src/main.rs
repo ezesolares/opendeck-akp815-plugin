@@ -6,11 +6,13 @@ use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use log::{info, error, debug};
-use hidapi::HidApi;
 use simplelog::{CombinedLogger, WriteLogger, TermLogger, LevelFilter, Config, TerminalMode, ColorChoice};
-use ajazz_sdk::{
-    Kind, Ajazz, Event
+use mirajazz::{
+    device::{list_devices, Device, DeviceQuery},
+    state::DeviceStateUpdate,
+    types::{DeviceInput, ImageFormat, ImageMode, ImageRotation, ImageMirroring},
 };
+use image::DynamicImage;
 
 // Mapping derived from physical photo evidence + SDK internals.
 // The SDK applies opendeck_to_device_key internally, so we pre-transform
@@ -87,26 +89,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let register_msg = json!({ "event": register_event, "uuid": plugin_uuid });
     let _ = ws_write_tx.send(Message::Text(register_msg.to_string().into())).await;
 
-    let hidapi = HidApi::new()?;
-    let mut ajazz_op = None;
-    let mut serial_number = String::new();
+    // Use mirajazz to find the AKP815
+    let query = DeviceQuery::new(65440, 1, 0x5548, 0x6672);
+    let devices = list_devices(&[query]).await?;
+    let dev_info_opt = devices.into_iter().next();
 
-    for device_info in hidapi.device_list() {
-        if let Some(kind) = Kind::from_vid_pid(device_info.vendor_id(), device_info.product_id()) {
-            if kind == Kind::Akp815 {
-                info!("Found AKP815! Path: {:?}", device_info.path());
-                serial_number = device_info.serial_number().map(|sn| sn.to_string()).unwrap_or_else(|| "UNKNOWN".to_string());
-                ajazz_op = Some(Ajazz::connect(&hidapi, kind, &serial_number)?);
-                break;
-            }
+    let dev_info = match dev_info_opt {
+        Some(info) => info,
+        None => {
+            error!("AKP815 not found.");
+            return Ok(());
         }
-    }
+    };
+    
+    info!("Found AKP815!");
 
-    let ajazz_device = Arc::new(match ajazz_op {
-        Some(dev) => dev,
-        None => { error!("AKP815 not found."); return Ok(()); }
-    });
-
+    // Connect with protocol_version = 1, keys = 15, encoders = 0
+    let ajazz_device = Arc::new(Device::connect(&dev_info, 1, 15, 0).await?);
+    
+    let serial_number = ajazz_device.serial_number().clone();
     let device_id = format!("aj-{}", serial_number);
 
     let device_info_msg = json!({
@@ -150,7 +151,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     info!("Starting device event loop...");
-    let reader = ajazz_device.get_reader();
+    
+    let reader = ajazz_device.get_reader(|key, _state| {
+        let mut buttons = vec![false; 15];
+        if key > 0 && key <= 15 {
+            buttons[(key - 1) as usize] = true;
+        }
+        Ok(DeviceInput::ButtonStateChange(buttons))
+    });
+
+    let image_format = ImageFormat {
+        mode: ImageMode::JPEG,
+        size: (100, 100),
+        rotation: ImageRotation::Rot0,
+        mirror: ImageMirroring::None,
+    };
 
     loop {
         while let Ok(cmd) = cmd_rx.try_recv() {
@@ -164,59 +179,53 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                     if let Some(img_str) = img_str {
                         if img_str.is_empty() {
-                            let _ = ajazz_device.clear_button_image(sdk_pos);
+                            let _ = ajazz_device.clear_button_image(sdk_pos).await;
                         } else if let Some((_, b64)) = img_str.split_once(',') {
                             use base64::Engine;
                             if let Ok(bytes) = base64::engine::general_purpose::STANDARD.decode(b64) {
                                 if let Ok(img) = image::load_from_memory(&bytes) {
-                                    use image::imageops::FilterType;
-                                    let resized = img.resize_exact(100, 100, FilterType::Nearest);
-                                    let _ = ajazz_device.set_button_image(sdk_pos, resized);
+                                    let _ = ajazz_device.set_button_image(sdk_pos, image_format, img).await;
                                 }
                             }
                         }
                     } else {
-                        let _ = ajazz_device.clear_button_image(sdk_pos);
+                        let _ = ajazz_device.clear_button_image(sdk_pos).await;
                     }
-                    let _ = ajazz_device.flush();
+                    let _ = ajazz_device.flush().await;
                 }
                 DeviceCmd::SetBrightness(b) => {
-                    let _ = ajazz_device.set_brightness(b);
+                    let _ = ajazz_device.set_brightness(b).await;
                 }
             }
         }
 
-        match reader.read(Some(Duration::from_millis(50))) {
-            Ok(events) => {
-                for event in events {
-                    match event {
-                        Event::ButtonDown(sdk_pos) => {
-                            let od_pos = if (sdk_pos as usize) < SDK_TO_OD.len() {
-                                SDK_TO_OD[sdk_pos as usize]
-                            } else { sdk_pos };
-                            debug!("ButtonDown: sdk={}, od={}", sdk_pos, od_pos);
-                            let msg = json!({
-                                "event": "keyDown",
-                                "payload": { "device": device_id, "position": od_pos }
-                            });
-                            let _ = ws_write_tx_for_events.send(Message::Text(msg.to_string().into())).await;
-                        }
-                        Event::ButtonUp(sdk_pos) => {
-                            let od_pos = if (sdk_pos as usize) < SDK_TO_OD.len() {
-                                SDK_TO_OD[sdk_pos as usize]
-                            } else { sdk_pos };
-                            let msg = json!({
-                                "event": "keyUp",
-                                "payload": { "device": device_id, "position": od_pos }
-                            });
-                            let _ = ws_write_tx_for_events.send(Message::Text(msg.to_string().into())).await;
-                        }
-                        _ => {}
+        if let Ok(updates) = reader.read(Some(Duration::from_millis(50))).await {
+            for update in updates {
+                match update {
+                    DeviceStateUpdate::ButtonDown(sdk_pos) => {
+                        let od_pos = if (sdk_pos as usize) < SDK_TO_OD.len() {
+                            SDK_TO_OD[sdk_pos as usize]
+                        } else { sdk_pos };
+                        debug!("ButtonDown: sdk={}, od={}", sdk_pos, od_pos);
+                        let msg = json!({
+                            "event": "keyDown",
+                            "payload": { "device": device_id, "position": od_pos }
+                        });
+                        let _ = ws_write_tx_for_events.send(Message::Text(msg.to_string().into())).await;
                     }
+                    DeviceStateUpdate::ButtonUp(sdk_pos) => {
+                        let od_pos = if (sdk_pos as usize) < SDK_TO_OD.len() {
+                            SDK_TO_OD[sdk_pos as usize]
+                        } else { sdk_pos };
+                        let msg = json!({
+                            "event": "keyUp",
+                            "payload": { "device": device_id, "position": od_pos }
+                        });
+                        let _ = ws_write_tx_for_events.send(Message::Text(msg.to_string().into())).await;
+                    }
+                    _ => {}
                 }
             }
-            Err(_) => {}
         }
-        tokio::task::yield_now().await;
     }
 }

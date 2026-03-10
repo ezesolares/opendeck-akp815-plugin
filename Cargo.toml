@@ -9,8 +9,7 @@ path = "src/main.rs"
 
 # Plugin dependencies
 [dependencies]
-ajazz-sdk = { git = "https://github.com/mistweaverco/opendeck-ajazz" }
-hidapi = "2.6.3"
+mirajazz = "0.10.0"
 tokio = { version = "1.0", features = ["full"] }
 tokio-tungstenite = { version = "0.28.0", features = ["rustls-tls-native-roots"] }
 futures-util = "0.3.31"
