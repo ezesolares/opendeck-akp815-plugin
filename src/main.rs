@@ -167,6 +167,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         mirror: ImageMirroring::None,
     };
 
+    let mut pending_brightness: Option<u8> = None;
+    let mut brightness_apply_time = tokio::time::Instant::now();
+
     loop {
         while let Ok(cmd) = cmd_rx.try_recv() {
             match cmd {
@@ -194,8 +197,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let _ = ajazz_device.flush().await;
                 }
                 DeviceCmd::SetBrightness(b) => {
-                    let _ = ajazz_device.set_brightness(b).await;
+                    pending_brightness = Some(b);
+                    brightness_apply_time = tokio::time::Instant::now() + Duration::from_secs(2);
                 }
+            }
+        }
+
+        if let Some(b) = pending_brightness {
+            if tokio::time::Instant::now() >= brightness_apply_time {
+                let _ = ajazz_device.set_brightness(b).await;
+                pending_brightness = None;
             }
         }
 
