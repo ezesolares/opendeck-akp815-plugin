@@ -25,6 +25,8 @@ if [ -d icons ]; then
 fi
 
 # Create the .streamDeckPlugin file (it's just a zip)
+# We must include the .sdPlugin directory itself because OpenDeck's zip_extract.rs 
+# looks for a path component ending with ".sdplugin" to identify the plugin root.
 zip -r "$OUTPUT_FILE" "$PLUGIN_DIR"
 
 # Clean up

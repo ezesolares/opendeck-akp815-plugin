@@ -1,0 +1,13 @@
+Archive:  com.artecom.akp815.streamDeckPlugin
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+        0  03-10-2026 05:25   com.artecom.akp815.sdPlugin/
+  5129280  03-10-2026 05:25   com.artecom.akp815.sdPlugin/opendeck-akp815-plugin
+      764  03-10-2026 05:25   com.artecom.akp815.sdPlugin/manifest.json
+        0  03-10-2026 05:25   com.artecom.akp815.sdPlugin/icons/
+      857  03-10-2026 05:25   com.artecom.akp815.sdPlugin/icons/plugin.png
+       95  03-10-2026 05:25   com.artecom.akp815.sdPlugin/icons/category.png
+       84  03-10-2026 05:25   com.artecom.akp815.sdPlugin/icons/action.png
+---------                     -------
+  5131080                     7 files
+test of com.artecom.akp815.streamDeckPlugin OK
