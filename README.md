@@ -13,12 +13,17 @@ A plugin for [OpenDeck](https://github.com/nekename/OpenDeck) targeting the AJAZ
 With the AKP815 plugged in, run:
 
 ```bash
-lsusb | grep -i ajazz
+lsusb
+
+For me, it was Bus 001 Device 010: ID 5548:6672 9B3 9B390
 ```
 
-Example output: `Bus 003 Device 007: ID 0300:1005 Ajazz AKP815`
+Bus 001 Device 010: ID 5548:6672 9B3 9B390
 
-The PID is the second 4-digit hex value (e.g. `1005`). If it differs from `0x1005`, update:
+
+Example output: `Bus 001 Device 010: ID 5548:6672 9B3 9B390`
+
+The PID is the second 4-digit hex value (e.g. `6672`). If it differs from `0x6672`, update:
 - `AKP815_PID` in `src/main.rs`
 - Both `.rules` file entries
 
