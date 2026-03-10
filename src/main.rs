@@ -16,8 +16,16 @@ use ajazz_sdk::{
 // The SDK applies opendeck_to_device_key internally, so we pre-transform
 // our positions to cancel that out and hit the correct physical LCD slot.
 // OD 3x5 landscape → physical 5x3 portrait (90° CW rotation).
-const OD_TO_SDK: [u8; 15] = [0, 5, 10, 1, 6, 2, 7, 12, 3, 8, 4, 9, 14, 11, 13];
-const SDK_TO_OD: [u8; 15] = [0, 3, 5, 8, 10, 1, 4, 6, 9, 11, 2, 13, 7, 14, 12];
+// OD 3x5 landscape → physical 5x3 portrait mapping.
+// These tables pre-transform OD positions so that after the SDK applies its
+// own opendeck_to_device_key() remap, the image lands on the correct physical slot.
+//
+// Derivation (90° CW rotation: phys_row = OD_col, phys_col = 2 - OD_row):
+//   target_phys[od] = OD_col * 3 + (2 - OD_row)
+//   OD_TO_SDK[od]   = inverse_of_sdk_remap[target_phys[od]]
+//   SDK_TO_OD[sdk]  = inverse of OD_TO_SDK
+const OD_TO_SDK: [u8; 15] = [10, 11, 12, 13, 14, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4];
+const SDK_TO_OD: [u8; 15] = [10, 11, 12, 13, 14, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4];
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
