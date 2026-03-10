@@ -106,6 +106,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Connect with protocol_version = 1, keys = 15, encoders = 0
     let ajazz_device = Arc::new(Device::connect(&dev_info, 1, 15, 0).await?);
+
+    ajazz_device.clear_all_button_images().await?;
+    ajazz_device.flush().await?;
     
     let serial_number = ajazz_device.serial_number().clone();
     let device_id = format!("aj-{}", serial_number);

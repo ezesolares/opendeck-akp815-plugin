@@ -1,1 +1,7 @@
 target/
+ziptest
+plugin_*
+mirajazz-temp/
+.serena/
+com.artecom.akp815.streamDeckPlugin
+release/
