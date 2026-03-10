@@ -20,17 +20,5 @@
   "Software": {
     "MinimumVersion": "6.0"
   },
-  "Actions": [
-    {
-      "Name": "AKP815 Action",
-      "UUID": "com.artecom.akp815.action",
-      "Icon": "icons/plugin",
-      "States": [
-        {
-          "Image": "icons/plugin",
-          "Title": "AKP815"
-        }
-      ]
-    }
-  ]
+  "Actions": []
 }

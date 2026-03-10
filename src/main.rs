@@ -108,6 +108,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ajazz_device = Arc::new(Device::connect(&dev_info, 1, 15, 0).await?);
 
     ajazz_device.clear_all_button_images().await?;
+    ajazz_device.set_brightness(75).await?;
     ajazz_device.flush().await?;
     
     let serial_number = ajazz_device.serial_number().clone();
